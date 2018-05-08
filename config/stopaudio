@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "Stopping Snips audio server"
+sudo systemctl stop snips-audio-server
+
+read -p "Press enter to start it again"
+sudo systemctl start snips-audio-server

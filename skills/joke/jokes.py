@@ -1,7 +1,7 @@
 import requests
 import json
 import random
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 class JokeProvider(object):
     
@@ -34,6 +34,23 @@ class OfflineJoker(JokeProvider):
             joke = self.getRandomJoke(jokes)
         return joke
 
+class LineJoker(JokeProvider):
+    def __init__(self, fileName):
+        self._fileName = fileName
+        
+    def getRandomJoke(self, jokes):
+        print(len(jokes))
+        randomIndex = random.randint(0, len(jokes) - 1)
+        joke = jokes[randomIndex]
+        return joke
+    
+    def getJoke(self):
+        f = open(self._fileName, "r")
+        jokes = f.readlines()
+        f.close()
+        
+        joke = self.getRandomJoke(jokes)
+        return joke
 
 class RandomJoker(JokeProvider):
     def __init__(self):
@@ -45,12 +62,4 @@ class RandomJoker(JokeProvider):
     def getJoke(self):
         randomIndex = random.randint(0, len(self._jokers) - 1)
         return self._jokers[randomIndex].getJoke()
-
-
-jokeProvider = RandomJoker()
-jokeProvider.add(OfflineJoker("stupidstuff.json"))
-jokeProvider.add(OfflineJoker("wocka.json"))
-jokeProvider.add(ChuckJokeProvider())
-
-print(jokeProvider.getJoke())
 
