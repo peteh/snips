@@ -19,11 +19,12 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     excludes = [
     "hermes/audioServer/default/audioFrame",
-    "hermes/audioServer/bedroom/audioFrame"
+    "hermes/audioServer/bedroom/audioFrame", 
+    "hermes/audioServer/kitchen/audioFrame"
     ]
     if msg.topic in excludes:
         return
-    if len(msg.payload) > 0 and len(msg.payload) < 2000:
+    if len(msg.payload) > 0 and len(msg.payload) < 2000 and not msg.topic in excludes:
         print('[{}] - {}: {}'.format(time_now(), msg.topic, msg.payload))
     else:
         print('[{}] - {}'.format(time_now(), msg.topic))
