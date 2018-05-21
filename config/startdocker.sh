@@ -1,0 +1,1 @@
+docker run -t --rm --name snips --log-driver none -p 9898:1883 -v /home/pete/.asoundrc:/root/.asoundrc -v /opt/snips/config/assistant:/usr/share/snips/assistant --privileged -v /dev/snd:/dev/snd snipsdocker/platform
