@@ -39,8 +39,10 @@ class HotwordBeep(object):
         siteId = data['siteId']
         if msg.topic == 'hermes/hotword/default/detected':
             fname = "beepon.wav"
+            print("Playing start tone at site %s" % (siteId))
         else:
             fname = "beepoff.wav"
+            print("Playing stop tone at site %s" % (siteId))
         fp = open(fname, "rb")
 
         wav = fp.read()
