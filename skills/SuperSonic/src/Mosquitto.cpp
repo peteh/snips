@@ -59,6 +59,12 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 
 	bool switchTo = !m_lastState;
 	std::string device = "";
+	std::string siteId = "";
+	if (intentJson.isMember("siteId"))
+	{
+		siteId = intentJson["siteId"].asString();
+	}
+
 	if (intentJson.isMember("slots"))
 	{
 		Json::Value slots = intentJson["slots"];
@@ -84,12 +90,31 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 		}
 	}
 
+	// groupCode is for each room
+	std::string groupCode = "00000";
+
+	if(siteId == "bedroom")
+	{
+		groupCode = "10000";
+	}
+	else if(siteId == "kitchen")
+	{
+		groupCode = "01000";
+	}
+	else if(siteId == "default")
+	{
+		groupCode = "00100";
+	}
+
+
+	// deviceCode is local in the room
 	std::string deviceCode = "00000";
 	if(device == "light")
 	{
-		// 00100 big lights
-		// 00010 small lights
+		// 00100 big lights bedroom
+		// 00010 small lights bedroom
 		deviceCode = "00010";
+
 	}
 	else if (device == "fan")
 	{
@@ -107,16 +132,16 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 	}
 
 	m_lastState = switchTo;
-	std::cout << "Switching " << device << " to " << switchTo << std::endl;
+	std::cout << "Switching " << device << " to " << switchTo << "(" << groupCode << ":" << deviceCode << ")" << std::endl;
 	if (switchTo)
 	{
-		m_rcSwitch.switchOn(m_rfGroup.c_str(), deviceCode.c_str());
-		m_rcSwitch.switchOn(m_rfGroup.c_str(), deviceCode.c_str());
+		m_rcSwitch.switchOn(groupCode.c_str(), deviceCode.c_str());
+		m_rcSwitch.switchOn(groupCode.c_str(), deviceCode.c_str());
 	}
 	else
 	{
-		m_rcSwitch.switchOff(m_rfGroup.c_str(), deviceCode.c_str());
-		m_rcSwitch.switchOff(m_rfGroup.c_str(), deviceCode.c_str());
+		m_rcSwitch.switchOff(groupCode.c_str(), deviceCode.c_str());
+		m_rcSwitch.switchOff(groupCode.c_str(), deviceCode.c_str());
 	}
 	std::string switchToStr = (switchTo ? "on" : "off");
 	endSession(sessionId,
