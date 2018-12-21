@@ -7,7 +7,6 @@
 #include "TcpServer.h"
 #include "sensors/DHT11Sensor.h"
 
-
 #define TRIGGER1 4
 #define ECHO1 5
 
@@ -24,6 +23,9 @@
 #include "RCSwitch.h"
 #include "Mosquitto.h"
 #include <mosquittopp.h>
+#include "device/Device.h"
+#include "device/RFDevice.h"
+#include "device/WOLDevice.h"
 
 void setup()
 {
@@ -61,7 +63,6 @@ void distanceEnabler()
 
 	bool enabled = false;
 
-
 	unsigned int lastSwitch = micros();
 
 	double lastValue = INFINITY;
@@ -80,7 +81,7 @@ void distanceEnabler()
 			std::cout << "last: " << lastValue << std::endl;
 
 			if (enabled)
-			{// TODO Auto-generated constructor stub
+			{ // TODO Auto-generated constructor stub
 
 				mySwitch.switchOff("11111", "10000");
 			}
@@ -103,7 +104,61 @@ void mosq()
 	mySwitch.enableTransmit(RCDATA);
 
 	Mosquitto m = Mosquitto(mySwitch, "Bedlight", "10000", "10000");
-	//Mosquitto m2 = Mosquitto(mySwitch, "Fan", "10000", "01000");
+	std::string LIGHT = "light";
+	std::string FAN = "fan";
+	std::string ALL_LIGHTS = "all lights";
+	std::string EVERYTHING = "everything";
+
+	// bedroom 10000
+	// 00100 big lights bedroom
+	// 00010 small lights bedroom
+	// 01000 fan
+	// 10000 bed light
+
+	Device* bedlightBedroom = new RFDevice("bedroom", "bedlight", &mySwitch,
+			"10000", "10000");
+	bedlightBedroom->addAliasDeviceName(ALL_LIGHTS);
+	bedlightBedroom->addAliasDeviceName(EVERYTHING);
+	m.addDevice(bedlightBedroom);
+
+	Device* smallLightBedroom = new RFDevice("bedroom", "small light",
+			&mySwitch, "10000", "00010");
+	smallLightBedroom->addAliasDeviceName(LIGHT);
+	smallLightBedroom->addAliasDeviceName(ALL_LIGHTS);
+	smallLightBedroom->addAliasDeviceName(EVERYTHING);
+	m.addDevice(smallLightBedroom);
+
+	Device* bigLightBedroom = new RFDevice("bedroom", "big light", &mySwitch,
+			"10000", "00100");
+	bigLightBedroom->addAliasDeviceName(LIGHT);
+	bigLightBedroom->addAliasDeviceName(ALL_LIGHTS);
+	bigLightBedroom->addAliasDeviceName(EVERYTHING);
+	m.addDevice(bigLightBedroom);
+
+	Device* fanBedroom = new RFDevice("bedroom", FAN, &mySwitch, "10000",
+			"01000");
+	fanBedroom->addAliasDeviceName(EVERYTHING);
+	m.addDevice(fanBedroom);
+
+	// kitchen 01000
+	// 01000 fan
+	Device* fanKitchen = new RFDevice("kitchen", FAN, &mySwitch, "01000",
+			"01000");
+	fanKitchen->addAliasDeviceName(EVERYTHING);
+	m.addDevice(fanKitchen);
+
+	// livingroom 00100
+	Device* lightLivingroom = new RFDevice("livingroom", LIGHT, &mySwitch,
+			"00100", "00010");
+	lightLivingroom->addAliasDeviceName(ALL_LIGHTS);
+	lightLivingroom->addAliasDeviceName(EVERYTHING);
+	m.addDevice(lightLivingroom);
+
+	Device* fanLivingroom = new RFDevice("livingroom", FAN, &mySwitch, "00100", "01000");
+	fanLivingroom->addAliasDeviceName(EVERYTHING);
+	m.addDevice(fanLivingroom);
+
+	m.addDevice(new WOLDevice("livingroom", "computer", "00:24:1D:C0:BE:F8"));
 	sleep(30);
 }
 

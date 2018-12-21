@@ -19,6 +19,11 @@ Mosquitto::Mosquitto(RCSwitch &rcSwitch, std::string device,
 	subscribe((int*) mid, fullIntent.c_str(), 1);
 }
 
+void Mosquitto::addDevice(Device* device)
+{
+	m_devices.push_back(device);
+}
+
 std::string Mosquitto::toLower(std::string str)
 {
 	std::string temp = str;
@@ -41,6 +46,7 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 {
 	std::cout << "Received message" << std::endl;
 	std::cout << message->topic << std::endl;
+
 	std::string messageStr = std::string((char*) message->payload);
 
 	Json::StyledWriter styledWriter;
@@ -57,9 +63,11 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 
 	std::string sessionId = intentJson["sessionId"].asString();
 
-	bool switchTo = !m_lastState;
 	std::string device = "";
 	std::string siteId = "";
+	std::string room = "";
+	std::string onoff = "";
+
 	if (intentJson.isMember("siteId"))
 	{
 		siteId = intentJson["siteId"].asString();
@@ -79,7 +87,7 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 
 			if (name == "onoff")
 			{
-				switchTo = (value == "on");
+				onoff = toLower(trim(value));
 			}
 
 			if (name == "device")
@@ -87,65 +95,53 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 				device = toLower(trim(value));
 			}
 
+			if (name == "room")
+			{
+				room = toLower(trim(value));
+			}
+
 		}
 	}
 
-	// groupCode is for each room
-	std::string groupCode = "00000";
-
-	if(siteId == "bedroom")
+	if (room.compare("") == 0)
 	{
-		groupCode = "10000";
-	}
-	else if(siteId == "kitchen")
-	{
-		groupCode = "01000";
-	}
-	else if(siteId == "default")
-	{
-		groupCode = "00100";
+		std::cout << "Room not commanded, using siteId: " << siteId
+				<< std::endl;
+		room = siteId;
 	}
 
+	std::vector<Device*> devices = findDevices(room, device);
+	std::cout << "Room: " << room << std::endl;
 
-	// deviceCode is local in the room
-	std::string deviceCode = "00000";
-	if(device == "light")
-	{
-		// 00100 big lights bedroom
-		// 00010 small lights bedroom
-		deviceCode = "00010";
+	std::string deviceStr = "";
+	bool switchTo = (onoff != "") ? (onoff == "on") : true;
 
-	}
-	else if (device == "fan")
+	for (auto device : devices)
 	{
-		deviceCode = "01000";
+		deviceStr += device->getDeviceName() + " ";
 	}
-	else if (device == "bedlight")
+
+	std::string switchToStr = (switchTo ? "on" : "off");
+	if (devices.size() == 0)
 	{
-		deviceCode = "10000";
-	}
-	else
-	{
-		// not for us
-		std::cout << "I am " << m_device << ", ignoring " << device;
+		endSession(sessionId,
+				"There is no " + device + " in the " + room + ", you moron! ");
 		return;
 	}
 
-	m_lastState = switchTo;
-	std::cout << "Switching " << device << " to " << switchTo << "(" << groupCode << ":" << deviceCode << ")" << std::endl;
-	if (switchTo)
+	endSession(sessionId, "I turned the " + deviceStr + " " + switchToStr);
+	for (auto device : devices)
 	{
-		m_rcSwitch.switchOn(groupCode.c_str(), deviceCode.c_str());
-		m_rcSwitch.switchOn(groupCode.c_str(), deviceCode.c_str());
+		if (switchTo)
+		{
+			device->switchOn();
+		}
+		else
+		{
+			device->switchOff();
+		}
 	}
-	else
-	{
-		m_rcSwitch.switchOff(groupCode.c_str(), deviceCode.c_str());
-		m_rcSwitch.switchOff(groupCode.c_str(), deviceCode.c_str());
-	}
-	std::string switchToStr = (switchTo ? "on" : "off");
-	endSession(sessionId,
-			"I turned the " + device + " " + switchToStr);
+
 
 }
 
@@ -160,6 +156,26 @@ void Mosquitto::endSession(std::string sessionId, std::string saySomething)
 
 	this->publish((int*) 0, "hermes/dialogueManager/endSession",
 			messageJson.size(), messageJson.c_str());
+}
+
+std::vector<Device*> Mosquitto::findDevices(std::string room,
+		std::string deviceName)
+{
+	std::vector<Device*> devices;
+
+	for (auto device : m_devices)
+	{
+		if ((room.compare(device->getRoom()) == 0
+				|| room.compare("everywhere") == 0)
+				&& (deviceName.compare(device->getDeviceName()) == 0
+						|| device->isAlias(deviceName)))
+		{
+			std::cout << device->getRoom() << ":" << device->getDeviceName()
+					<< " matches the search" << std::endl;
+			devices.push_back(device);
+		}
+	}
+	return devices;
 }
 
 void Mosquitto::on_connect(int rc)

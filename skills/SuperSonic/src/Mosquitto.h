@@ -15,6 +15,7 @@
 #include <jsoncpp/json/json.h>
 #include <algorithm>
 #include "RCSwitch.h"
+#include "device/Device.h"
 
 class Mosquitto : public mosqpp::mosquittopp
 {
@@ -41,14 +42,18 @@ public:
 
     void endSession(std::string sessionId, std::string saySomething);
 
+    void addDevice(Device* device);
+
 private:
     std::string toLower(std::string str);
+    std::vector<Device*> findDevices(std::string room, std::string deviceName);
 
     RCSwitch m_rcSwitch;
     bool m_lastState;
     std::string m_device;
 	std::string m_rfGroup;
 	std::string m_rfDevice;
+	std::vector<Device*> m_devices;
 };
 
 #endif /* MOSQUITTO_H_ */
