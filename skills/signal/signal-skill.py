@@ -25,7 +25,7 @@ class MqttClient():
     
     def connect(self):
         print("connecting")
-        self._mqttClient.connect('creampi3.local', 1883)
+        self._mqttClient.connect('192.168.36.133', 1883)
 
 
     def publish(self, topic, payload): 
@@ -68,8 +68,11 @@ class MqttClient():
 
         audioTopic = "hermes/audioServer/" + self.getSiteId() + "/playBytes/"
         if msg.topic.startswith(audioTopic):
+            print("Sending audio finished for")
             splitted = msg.topic.split("/")
+            playId = splitted[4]
             playFinished = {"id": playId, "siteId": self.getSiteId()}
+            
             client.publish("hermes/audioServer/" + self.getSiteId() + "/playFinished", json.dumps(playFinished))
         
         for request in self._requests:
