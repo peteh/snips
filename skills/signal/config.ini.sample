@@ -1,6 +1,7 @@
 
 [snips]
 siteid=signal
+mqttbroker=localhost
 
 [signal]
 signalnumber=1234
