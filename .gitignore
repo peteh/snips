@@ -38,3 +38,5 @@
 /skills/SuperSonic/Release/src/UltraSonicSensorArray.d
 /skills/SuperSonic/Release/src/UltraSonicSensorArray.o
 /skills/SuperSonic/Release/src/subdir.mk
+
+skills/signal/config\.ini

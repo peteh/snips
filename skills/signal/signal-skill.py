@@ -13,9 +13,10 @@ def time_now():
 
 
 class MqttClient(): 
-    def __init__(self, siteId, signalNumber): 
+    def __init__(self, mqttBroker, siteId, signalNumber): 
         self._requests = []
         # MQTT client to connect to the bus
+        self._mqttBroker = broker
         self._mqttClient = mqtt.Client()
         self._mqttClient.on_connect = self.onConnect
         self._mqttClient.on_message = self.onMessage
@@ -24,8 +25,8 @@ class MqttClient():
         
     
     def connect(self):
-        print("connecting")
-        self._mqttClient.connect('creampi3.local', 1883)
+        print("connecting to %s" % (self._mqttBroker))
+        self._mqttClient.connect(self._mqttBroker, 1883)
 
 
     def publish(self, topic, payload): 
@@ -39,7 +40,8 @@ class MqttClient():
         return self._siteId
     
     def onConnect(self, client, userdata, flags, rc):
-        print("onconnect")
+        print("Connected to MQTT")
+        print("Start listening for messages to %s as site %s" % (self._signalNumber, self._siteId))
         # subscribe to all messages
         client.subscribe('hermes/asr/startListening')
         client.subscribe('hermes/tts/say')
@@ -68,8 +70,11 @@ class MqttClient():
 
         audioTopic = "hermes/audioServer/" + self.getSiteId() + "/playBytes/"
         if msg.topic.startswith(audioTopic):
+            print("Sending audio finished for")
             splitted = msg.topic.split("/")
+            playId = splitted[4]
             playFinished = {"id": playId, "siteId": self.getSiteId()}
+            
             client.publish("hermes/audioServer/" + self.getSiteId() + "/playFinished", json.dumps(playFinished))
         
         for request in self._requests:
@@ -151,9 +156,10 @@ class Request:
 config = configparser.ConfigParser()
 config.read('config.ini')
 siteid = config.get('snips', 'siteid', fallback='signal')
+broker = config.get('snips', 'mqttBroker', fallback='localhost')
 signalNumber = config.get('signal', 'signalnumber')
 
-mqttClient = MqttClient(siteid, signalNumber)
+mqttClient = MqttClient(broker, siteid, signalNumber)
 mqttClient.connect()
 time.sleep(1)
 mqttClient._mqttClient.loop_forever()
