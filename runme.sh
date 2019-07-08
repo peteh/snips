@@ -1,7 +1,8 @@
 #!/bin/bash
-cd hotword/beep
-lxterminal -e python3 beep.py
-cd ../../
+
+#cd hotword/beep
+#lxterminal -e python3 beep.py
+#cd ../../
  
 cd skills
 
@@ -15,3 +16,8 @@ cd ..
 
 cd SuperSonic
 lxterminal -e sudo Debug/SuperSonic
+cd ../
+
+cd ../../snips-skill-owm
+ls
+lxterminal -e ./run.sh
