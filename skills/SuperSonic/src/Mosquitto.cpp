@@ -15,8 +15,10 @@ Mosquitto::Mosquitto(RCSwitch &rcSwitch, std::string device,
 	mosqpp::lib_init();
 	int mid = connect_async("localhost");
 	loop_start();
-	std::string fullIntent = "hermes/intent/async:DeviceSwitch";
-	subscribe((int*) mid, fullIntent.c_str(), 1);
+	std::string fullIntentDeviceSwitch = "hermes/intent/async:DeviceSwitch";
+	std::string goCrazyIntent = "hermes/intent/async:GoCrazy";
+	subscribe((int*) mid, fullIntentDeviceSwitch.c_str(), 1);
+	subscribe((int*) mid, goCrazyIntent.c_str(), 1);
 }
 
 void Mosquitto::addDevice(Device* device)
@@ -47,6 +49,72 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 	std::cout << "Received message" << std::endl;
 	std::cout << message->topic << std::endl;
 
+	if (strcmp(message->topic, "hermes/intent/async:GoCrazy") == 0)
+	{
+		on_messageCrazy(message);
+	}
+	else
+	{
+		on_messageDeviceSwitch(message);
+	}
+}
+
+void Mosquitto::on_messageCrazy(const struct mosquitto_message *message)
+{
+	std::cout << "Crazy";
+	std::string messageStr = std::string((char*) message->payload);
+
+	Json::StyledWriter styledWriter;
+	Json::Value intentJson;
+	Json::Reader reader;
+	bool parsingSuccessful = reader.parse(messageStr, intentJson);
+	if (parsingSuccessful)
+	{
+		std::cout << styledWriter.write(intentJson) << std::endl;
+	}
+
+	std::string intentName = intentJson["intent"]["intentName"].asString();
+	std::cout << intentName << std::endl;
+
+	std::string sessionId = intentJson["sessionId"].asString();
+
+	std::string device = "";
+	std::string siteId = "";
+
+	if (intentJson.isMember("siteId"))
+	{
+		siteId = intentJson["siteId"].asString();
+	}
+
+	std::string room = siteId;
+
+	std::vector<Device*> devices = findDevices(room, "all lights");
+	//std::vector<Device*> devices = findDevices("everywhere", "all lights");
+	std::cout << "Room: " << room << std::endl;
+
+	std::string deviceStr = "";
+
+	for (auto device : devices)
+	{
+		deviceStr += device->getDeviceName() + " ";
+	}
+
+	endSession(sessionId, "I am crazy");
+	for (int i = 0; i < 5; i++)
+	{
+		for (auto device : devices)
+		{
+			device->switchOn();
+			device->switchOff();
+		}
+
+	}
+
+}
+
+void Mosquitto::on_messageDeviceSwitch(const struct mosquitto_message *message)
+{
+	std::cout << "DEVICE SWITCHING";
 	std::string messageStr = std::string((char*) message->payload);
 
 	Json::StyledWriter styledWriter;
@@ -141,7 +209,6 @@ void Mosquitto::on_message(const struct mosquitto_message *message)
 			device->switchOff();
 		}
 	}
-
 
 }
 

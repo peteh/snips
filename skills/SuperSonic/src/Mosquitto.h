@@ -40,6 +40,8 @@ public:
      */
     void on_message(const struct mosquitto_message *message);
 
+    void on_messageDeviceSwitch(const struct mosquitto_message *message);
+    void on_messageCrazy(const struct mosquitto_message *message);
     void endSession(std::string sessionId, std::string saySomething);
 
     void addDevice(Device* device);
