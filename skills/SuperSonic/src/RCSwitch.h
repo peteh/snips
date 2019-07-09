@@ -29,7 +29,6 @@
 */
 #ifndef _RCSwitch_h
 #define _RCSwitch_h
-#define RPI
 #if defined(ARDUINO) && ARDUINO >= 100
     #include "Arduino.h"
 #elif defined(ENERGIA) // LaunchPad, FraunchPad and StellarPad specific

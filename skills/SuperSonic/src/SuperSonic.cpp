@@ -3,9 +3,12 @@
 #include <wiringPi.h>
 #include <iostream>
 #include <math.h>
+#include <mosquittopp.h>
+
 #include "sensors/UltraSonicSensor.h"
-#include "TcpServer.h"
 #include "sensors/DHT11Sensor.h"
+#include "TcpServer.h"
+
 
 #define TRIGGER1 4
 #define ECHO1 5
@@ -22,7 +25,7 @@
 
 #include "RCSwitch.h"
 #include "Mosquitto.h"
-#include <mosquittopp.h>
+
 #include "device/Device.h"
 #include "device/RFDevice.h"
 #include "device/WOLDevice.h"
