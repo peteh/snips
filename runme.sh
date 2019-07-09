@@ -1,7 +1,8 @@
 #!/bin/bash
-cd hotword/beep
-lxterminal -e python3 beep.py
-cd ../../
+
+#cd hotword/beep
+#lxterminal -e python3 beep.py
+#cd ../../
  
 cd skills
 
@@ -14,4 +15,10 @@ lxterminal -e python3 joke-skill.py
 cd ..
 
 cd SuperSonic
-lxterminal -e sudo Debug/SuperSonic
+lxterminal -e sudo build/DeviceSwitch
+cd ../
+
+# weather service is too unreliable
+#cd ../../snips-skill-owm
+#ls
+#lxterminal -e ./run.sh
