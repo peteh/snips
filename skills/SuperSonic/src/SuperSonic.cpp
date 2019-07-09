@@ -164,7 +164,7 @@ void mosq()
 	fanLivingroom->addAliasDeviceName(EVERYTHING);
 	m.addDevice(fanLivingroom);
 	
-	Device* printer3d = new RFDevice("3dprinter", FAN, &mySwitch, "00100", "00001");
+	Device* printer3d = new RFDevice("livingroom", "3dprinter", &mySwitch, "00100", "00001");
 	m.addDevice(printer3d);
 	
 	m.addDevice(new WOLDevice("livingroom", "computer", "00:24:1D:C0:BE:F8"));
