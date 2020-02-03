@@ -3,6 +3,8 @@
 #cd hotword/beep
 #lxterminal -e python3 beep.py
 #cd ../../
+
+. env/bin/activate
  
 cd skills
 
