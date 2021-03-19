@@ -150,7 +150,10 @@ void mosq()
 	fanKitchen->addAliasDeviceName(EVERYTHING);
 	m.addDevice(fanKitchen);
 
-	// livingroom 00100
+	// livingroom 00100:
+	// light :00010
+	// fan   :01000
+	// 3dprinter :00001
 	Device* lightLivingroom = new RFDevice("livingroom", LIGHT, &mySwitch,
 			"00100", "00010");
 	lightLivingroom->addAliasDeviceName(ALL_LIGHTS);
@@ -160,7 +163,10 @@ void mosq()
 	Device* fanLivingroom = new RFDevice("livingroom", FAN, &mySwitch, "00100", "01000");
 	fanLivingroom->addAliasDeviceName(EVERYTHING);
 	m.addDevice(fanLivingroom);
-
+	
+	Device* printer3d = new RFDevice("livingroom", "3dprinter", &mySwitch, "00100", "00001");
+	m.addDevice(printer3d);
+	
 	m.addDevice(new WOLDevice("livingroom", "computer", "00:24:1D:C0:BE:F8"));
 	sleep(30);
 }
